@@ -706,6 +706,102 @@ app.post('/api/user/upload-profile', userAuth, async (req, res) => {
   }
 });
 
+// ============ Payment Routes (Razorpay) ============
+
+// Create Razorpay Order
+app.post('/api/pay/create-order', userAuth, async (req, res) => {
+  try {
+    const { courseId, amount, courseName } = req.body;
+
+    if (!courseId || !amount) {
+      return res.status(400).json({ success: false, message: 'CourseId and amount are required' });
+    }
+
+    const amountInPaise = Math.round(Number(amount));
+
+    const options = {
+      amount: amountInPaise,
+      currency: 'INR',
+      receipt: `receipt_${req.user._id}_${courseId}_${Date.now()}`,
+      payment_capture: 1
+    };
+
+    const order = await razorpay.orders.create(options);
+
+    res.json({
+      success: true,
+      order: {
+        id: order.id,
+        amount: order.amount,
+        currency: order.currency,
+        receipt: order.receipt
+      },
+      keyId: process.env.RAZORPAY_KEY_ID
+    });
+  } catch (error) {
+    console.error('Error creating Razorpay order:', error.message);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Verify Razorpay Payment
+app.post('/api/pay/verify', userAuth, async (req, res) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, courseId } = req.body;
+
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({ success: false, message: 'Missing payment details' });
+    }
+
+    // Verify signature
+    const signatureBody = `${razorpay_order_id}|${razorpay_payment_id}`;
+    const expectedSignature = crypto
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+      .update(signatureBody)
+      .digest('hex');
+
+    if (expectedSignature !== razorpay_signature) {
+      console.error('❌ Signature mismatch:', { expected: expectedSignature, received: razorpay_signature });
+      return res.status(400).json({ success: false, message: 'Invalid payment signature' });
+    }
+
+    // Payment verified - create enrollment record
+    const enrollment = new Enrollment({
+      studentId: req.user._id,
+      courseId: courseId,
+      enrolledAt: new Date(),
+      status: 'active'
+    });
+
+    await enrollment.save();
+
+    // Create payment record
+    const payment = new Payment({
+      studentId: req.user._id,
+      courseId: courseId,
+      amount: Math.round(Number(req.body.amount || 0) / 100) || 0,
+      status: 'paid',
+      transactionId: razorpay_payment_id
+    });
+
+    await payment.save();
+
+    console.log('✅ Payment verified and enrollment created for user:', req.user._id, 'course:', courseId);
+
+    res.json({
+      success: true,
+      message: 'Payment verified successfully',
+      enrollment: {
+        id: enrollment._id,
+        status: enrollment.status
+      }
+    });
+  } catch (error) {
+    console.error('Error verifying payment:', error.message);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // ============ Admin Routes ============
 
 // Admin Login
