@@ -92,6 +92,18 @@ const StudentDashboard = () => {
   const [offlineFile, setOfflineFile] = useState(null);
   const [offlineUploading, setOfflineUploading] = useState(false);
 
+  // Profile form state
+  const [profileForm, setProfileForm] = useState({
+    name: userDetails.name,
+    email: userDetails.email,
+    phoneNumber: userDetails.phoneNumber || '',
+    targetExam: userDetails.selectedExam || '',
+    studyGoal: '',
+    location: userDetails.city || ''
+  });
+  const [profilePicFile, setProfilePicFile] = useState(null);
+  const [profileUpdating, setProfileUpdating] = useState(false);
+
   const onOfflineField = (k, v) => setOfflineForm(prev => ({ ...prev, [k]: v }));
 
   const submitOfflinePayment = async (e) => {
