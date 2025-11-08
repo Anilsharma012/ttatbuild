@@ -545,6 +545,32 @@ app.get('/api/user/verify-token', userAuth, async (req, res) => {
   }
 });
 
+// Get user's enrolled courses (My Courses)
+app.get('/api/user/student/my-courses', userAuth, async (req, res) => {
+  try {
+    const enrollments = await Enrollment.find({ studentId: req.user._id })
+      .populate('courseId', 'name description price thumbnail instructor')
+      .lean();
+
+    const courses = enrollments.map(enr => ({
+      _id: enr._id,
+      courseId: enr.courseId,
+      enrolledAt: enr.enrolledAt,
+      status: enr.status,
+      progress: enr.progress || 0,
+      expiresAt: enr.expiresAt
+    }));
+
+    res.json({
+      success: true,
+      courses: courses
+    });
+  } catch (error) {
+    console.error('Error fetching my courses:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // Update user details
 app.post('/api/user/update-details', userAuth, async (req, res) => {
   try {
