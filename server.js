@@ -8,6 +8,8 @@ const nodemailer = require('nodemailer');
 const fileUpload = require('express-fileupload');
 const fs = require('fs');
 const path = require('path');
+const Razorpay = require('razorpay');
+const crypto = require('crypto');
 
 dotenv.config();
 
