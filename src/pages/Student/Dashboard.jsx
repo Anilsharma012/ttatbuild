@@ -241,6 +241,117 @@ const StudentDashboard = () => {
     }
   };
 
+  // Handle preview course button
+  const handlePreviewCourse = (course) => {
+    navigate('/course-purchase', {
+      state: {
+        ...course,
+        price: course.price || 30000,
+        oldPrice: course.oldPrice || 120000,
+        isPreview: true,
+        features: [
+          'Complete CAT preparation material',
+          'Live interactive classes',
+          'Mock tests and practice sets',
+          'Doubt clearing sessions',
+          'Performance analysis',
+          'Study materials download'
+        ]
+      }
+    });
+  };
+
+  // Handle profile form input change
+  const handleProfileFormChange = (field, value) => {
+    setProfileForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Handle profile photo selection
+  const handleProfilePhotoChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setProfilePicFile(file);
+    }
+  };
+
+  // Handle save profile changes
+  const handleSaveProfile = async (e) => {
+    e.preventDefault();
+    const authToken = localStorage.getItem('authToken');
+
+    if (!authToken) {
+      alert('Please login to update profile');
+      return;
+    }
+
+    setProfileUpdating(true);
+    try {
+      // Update basic profile info
+      const response = await fetch('/api/user/update-details', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: profileForm.name,
+          email: profileForm.email,
+          phoneNumber: profileForm.phoneNumber,
+          city: profileForm.location
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Profile update failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        setUserDetails(prev => ({
+          ...prev,
+          name: data.user.name,
+          email: data.user.email,
+          phoneNumber: data.user.phoneNumber,
+          city: data.user.city
+        }));
+
+        // Upload profile picture if selected
+        if (profilePicFile) {
+          const formData = new FormData();
+          formData.append('profilePic', profilePicFile);
+
+          const picResponse = await fetch('/api/user/upload-profile', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${authToken}`
+            },
+            body: formData
+          });
+
+          if (picResponse.ok) {
+            const picData = await picResponse.json();
+            if (picData.success) {
+              setUserDetails(prev => ({
+                ...prev,
+                profileImage: picData.url
+              }));
+              setProfilePicFile(null);
+            }
+          }
+        }
+
+        alert('✅ Profile updated successfully!');
+      } else {
+        alert('❌ Failed to update profile: ' + data.message);
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert('❌ Error updating profile: ' + error.message);
+    } finally {
+      setProfileUpdating(false);
+    }
+  };
+
   // Function to load user's enrolled courses
 const loadMyCourses = async () => {
   const authToken = localStorage.getItem('authToken');
