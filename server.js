@@ -604,6 +604,38 @@ app.post('/api/user/save-category', userAuth, async (req, res) => {
   }
 });
 
+// Save user selected exam
+app.post('/api/user/save-exam', userAuth, async (req, res) => {
+  try {
+    const { category, exam } = req.body;
+
+    if (!category || !exam) {
+      return res.status(400).json({ success: false, message: 'Category and exam are required' });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user._id,
+      { selectedCategory: category, selectedExam: exam, updatedAt: new Date() },
+      { new: true }
+    ).select('-password');
+
+    res.json({
+      success: true,
+      message: 'Exam saved successfully',
+      user: {
+        id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        selectedCategory: updatedUser.selectedCategory,
+        selectedExam: updatedUser.selectedExam
+      }
+    });
+  } catch (error) {
+    console.error('Error saving exam:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // Upload profile picture
 app.post('/api/user/upload-profile', userAuth, async (req, res) => {
   try {
