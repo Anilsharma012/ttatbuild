@@ -732,6 +732,50 @@ app.post('/api/user/upload-profile', userAuth, async (req, res) => {
   }
 });
 
+// Verify and unlock course payment (demo endpoint for testing)
+app.post('/api/user/payment/verify-and-unlock', userAuth, async (req, res) => {
+  try {
+    const { courseId } = req.body;
+
+    if (!courseId) {
+      return res.status(400).json({ success: false, message: 'Course ID is required' });
+    }
+
+    // Create enrollment
+    const enrollment = new Enrollment({
+      studentId: req.user._id,
+      courseId: courseId,
+      enrolledAt: new Date(),
+      status: 'active'
+    });
+
+    await enrollment.save();
+
+    // Create payment record
+    const payment = new Payment({
+      studentId: req.user._id,
+      courseId: courseId,
+      amount: 0,
+      status: 'paid',
+      transactionId: 'demo_' + Date.now()
+    });
+
+    await payment.save();
+
+    res.json({
+      success: true,
+      message: 'Course unlocked successfully',
+      enrollment: {
+        id: enrollment._id,
+        status: enrollment.status
+      }
+    });
+  } catch (error) {
+    console.error('Error unlocking course:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // ============ Payment Routes (Razorpay) ============
 
 // Create Razorpay Order
