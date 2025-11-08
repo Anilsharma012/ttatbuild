@@ -1950,100 +1950,148 @@ const loadMyCourses = async () => {
 
   const renderProfileContent = () => (
     <div className="profile-content">
-      <div className="section-header">
-        <h2>Profile Settings</h2>
-        <button className="primary-btn">Save Changes</button>
-      </div>
+      <form onSubmit={handleSaveProfile}>
+        <div className="section-header">
+          <h2>Profile Settings</h2>
+          <button type="submit" className="primary-btn" disabled={profileUpdating}>
+            {profileUpdating ? 'Saving...' : 'Save Changes'}
+          </button>
+        </div>
 
-      <div className="profile-grid">
-        <div className="profile-card">
-          <div className="profile-avatar">
-            <div className="avatar-placeholder">
-              <FiUser />
+        <div className="profile-grid">
+          <div className="profile-card">
+            <div className="profile-avatar">
+              {userDetails.profileImage ? (
+                <img src={userDetails.profileImage} alt="Profile" className="avatar-image" />
+              ) : (
+                <div className="avatar-placeholder">
+                  <FiUser />
+                </div>
+              )}
+              <input
+                type="file"
+                id="profile-pic-input"
+                accept="image/*"
+                onChange={handleProfilePhotoChange}
+                style={{ display: 'none' }}
+              />
+              <button
+                type="button"
+                className="change-avatar-btn"
+                onClick={() => document.getElementById('profile-pic-input').click()}
+              >
+                Change Photo
+              </button>
+              {profilePicFile && <p className="pic-selected">{profilePicFile.name}</p>}
             </div>
-            <button className="change-avatar-btn">Change Photo</button>
-          </div>
-          <div className="profile-info">
-            <h3>{userDetails.name}</h3>
-            <p>{userDetails.email}</p>
-            <div className="profile-stats">
-              <div className="stat">
-                <span className="stat-number">{userDetails.streak}</span>
-                <span className="stat-label">Day Streak</span>
+            <div className="profile-info">
+              <h3>{userDetails.name}</h3>
+              <p>{userDetails.email}</p>
+              <div className="profile-stats">
+                <div className="stat">
+                  <span className="stat-number">{userDetails.streak || 0}</span>
+                  <span className="stat-label">Day Streak</span>
+                </div>
+                <div className="stat">
+                  <span className="stat-number">{userDetails.totalPoints || 0}</span>
+                  <span className="stat-label">Total Points</span>
+                </div>
               </div>
-              <div className="stat">
-                <span className="stat-number">{userDetails.totalPoints}</span>
-                <span className="stat-label">Total Points</span>
+            </div>
+          </div>
+
+          <div className="profile-form">
+            <h3>Personal Information</h3>
+            <div className="form-grid">
+              <div className="form-group">
+                <label>Full Name</label>
+                <input
+                  type="text"
+                  value={profileForm.name}
+                  onChange={(e) => handleProfileFormChange('name', e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label>Email Address</label>
+                <input
+                  type="email"
+                  value={profileForm.email}
+                  onChange={(e) => handleProfileFormChange('email', e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label>Phone Number</label>
+                <input
+                  type="tel"
+                  placeholder="+91 9876543210"
+                  value={profileForm.phoneNumber}
+                  onChange={(e) => handleProfileFormChange('phoneNumber', e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label>Target Exam</label>
+                <select
+                  value={profileForm.targetExam}
+                  onChange={(e) => handleProfileFormChange('targetExam', e.target.value)}
+                >
+                  <option value="">Select exam</option>
+                  <option value="CAT">CAT 2024</option>
+                  <option value="XAT">XAT 2024</option>
+                  <option value="NMAT">NMAT 2024</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Study Goal</label>
+                <select
+                  value={profileForm.studyGoal}
+                  onChange={(e) => handleProfileFormChange('studyGoal', e.target.value)}
+                >
+                  <option value="">Select goal</option>
+                  <option value="95">95+ Percentile</option>
+                  <option value="90">90+ Percentile</option>
+                  <option value="85">85+ Percentile</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Current Location</label>
+                <input
+                  type="text"
+                  placeholder="City, State"
+                  value={profileForm.location}
+                  onChange={(e) => handleProfileFormChange('location', e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="preferences-card">
+            <h3>Preferences</h3>
+            <div className="preferences-list">
+              <div className="preference-item">
+                <span>Email Notifications</span>
+                <label className="toggle">
+                  <input type="checkbox" defaultChecked />
+                  <span className="slider"></span>
+                </label>
+              </div>
+              <div className="preference-item">
+                <span>SMS Reminders</span>
+                <label className="toggle">
+                  <input type="checkbox" defaultChecked />
+                  <span className="slider"></span>
+                </label>
+              </div>
+              <div className="preference-item">
+                <span>Performance Analytics</span>
+                <label className="toggle">
+                  <input type="checkbox" defaultChecked />
+                  <span className="slider"></span>
+                </label>
               </div>
             </div>
           </div>
         </div>
-
-        <div className="profile-form">
-          <h3>Personal Information</h3>
-          <div className="form-grid">
-            <div className="form-group">
-              <label>Full Name</label>
-              <input type="text" defaultValue={userDetails.name} />
-            </div>
-            <div className="form-group">
-              <label>Email Address</label>
-              <input type="email" defaultValue={userDetails.email} />
-            </div>
-            <div className="form-group">
-              <label>Phone Number</label>
-              <input type="tel" placeholder="+91 9876543210" />
-            </div>
-            <div className="form-group">
-              <label>Target Exam</label>
-              <select>
-                <option>CAT 2024</option>
-                <option>XAT 2024</option>
-                <option>NMAT 2024</option>
-              </select>
-            </div>
-            <div className="form-group">
-              <label>Study Goal</label>
-              <select>
-                <option>95+ Percentile</option>
-                <option>90+ Percentile</option>
-                <option>85+ Percentile</option>
-              </select>
-            </div>
-            <div className="form-group">
-              <label>Current Location</label>
-              <input type="text" placeholder="City, State" />
-            </div>
-          </div>
-        </div>
-
-        <div className="preferences-card">
-          <h3>Preferences</h3>
-          <div className="preferences-list">
-            <div className="preference-item">
-              <span>Email Notifications</span>
-              <label className="toggle">
-                <input type="checkbox" defaultChecked />
-                <span className="slider"></span>
-              </label>
-            </div>
-            <div className="preference-item">
-              <span>SMS Reminders</span>
-              <label className="toggle">
-                <input type="checkbox" defaultChecked />
-                <span className="slider"></span>
-              </label>
-            </div>
-            <div className="preference-item">
-              <span>Performance Analytics</span>
-              <label className="toggle">
-                <input type="checkbox" defaultChecked />
-                <span className="slider"></span>
-              </label>
-            </div>
-          </div>
-        </div>
-      </div>
+      </form>
     </div>
   );
 
