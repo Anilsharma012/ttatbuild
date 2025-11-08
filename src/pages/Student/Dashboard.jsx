@@ -428,11 +428,53 @@ const loadMyCourses = async () => {
 };
 
 
-  // Fetch published courses on component mount
+  // Fetch published courses and user details on component mount
   useEffect(() => {
     loadCourses();
     loadMyCourses();
+    loadUserDetails();
   }, []);
+
+  // Load user details from API
+  const loadUserDetails = async () => {
+    try {
+      const authToken = localStorage.getItem('authToken');
+      if (!authToken) return;
+
+      const response = await fetch('/api/user/verify-token', {
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.user) {
+          setUserDetails(prev => ({
+            ...prev,
+            name: data.user.name,
+            email: data.user.email,
+            phoneNumber: data.user.phoneNumber,
+            city: data.user.city,
+            profileImage: data.user.profilePic,
+            selectedExam: data.user.selectedExam || ''
+          }));
+
+          setProfileForm(prev => ({
+            ...prev,
+            name: data.user.name,
+            email: data.user.email,
+            phoneNumber: data.user.phoneNumber,
+            targetExam: data.user.selectedExam || '',
+            location: data.user.city || ''
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Error loading user details:', error);
+    }
+  };
 
   useEffect(() => {
     hydrateLiveClasses();
