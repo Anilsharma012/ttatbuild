@@ -1537,7 +1537,11 @@ const loadMyCourses = async () => {
                   >
                     🔧 Demo Buy
                   </button>
-                  <button className="preview-btn">
+                  <button
+                    type="button"
+                    className="preview-btn"
+                    onClick={() => handlePreviewCourse(course)}
+                  >
                     <FiEye /> Preview
                   </button>
                 </div>
