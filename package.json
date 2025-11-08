@@ -51,7 +51,7 @@
     "dev-win": "npm run start-win",
     "dev:backend": "node server.js",
     "dev:backend:watch": "nodemon server.js",
-    "dev:full": "concurrently -n frontend,backend -c blue,green \"cross-env PORT=3005 react-scripts start\" \"npm run dev:backend:watch\"",
+    "dev:full": "concurrently -n frontend,backend -c blue,green \"cross-env PORT=3004 react-scripts start\" \"npm run dev:backend:watch\"",
     "dev:full-win": "concurrently -n frontend,backend -c blue,green \"npm run start-win\" \"npm run dev:backend\"",
     "build": "react-scripts build",
     "test": "react-scripts test",
