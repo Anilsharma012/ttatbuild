@@ -45,7 +45,7 @@
   },
   "scripts": {
     "start": "cross-env PORT=3003 react-scripts start",
-    "start:frontend": "cross-env PORT=${PORT:-3003} react-scripts start",
+    "start:frontend": "cross-env PORT=3003 react-scripts start",
     "start-win": "set PORT=3003 && react-scripts start",
     "dev": "npm run start:frontend",
     "dev-win": "npm run start-win",
