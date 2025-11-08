@@ -573,6 +573,37 @@ app.post('/api/user/update-details', userAuth, async (req, res) => {
   }
 });
 
+// Save user selected category
+app.post('/api/user/save-category', userAuth, async (req, res) => {
+  try {
+    const { category } = req.body;
+
+    if (!category) {
+      return res.status(400).json({ success: false, message: 'Category is required' });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user._id,
+      { selectedCategory: category, updatedAt: new Date() },
+      { new: true }
+    ).select('-password');
+
+    res.json({
+      success: true,
+      message: 'Category saved successfully',
+      user: {
+        id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        selectedCategory: updatedUser.selectedCategory
+      }
+    });
+  } catch (error) {
+    console.error('Error saving category:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // Upload profile picture
 app.post('/api/user/upload-profile', userAuth, async (req, res) => {
   try {
